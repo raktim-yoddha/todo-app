@@ -18,8 +18,11 @@ import {
   LayoutGrid,
   CheckSquare,
   Timer,
-  Palette
+  Palette,
+  Sparkles
 } from "lucide-react";
+import { checkForUpdate, UpdateInfo, CURRENT_VERSION } from "../utils/updater";
+import { UpdateNotificationModal } from "./UpdateNotificationModal";
 import {
   DndContext,
   closestCenter,
@@ -222,6 +225,12 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({
   const [newTodoText, setNewTodoText] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
+  // Auto-update notification state
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatusMessage, setUpdateStatusMessage] = useState<string | null>(null);
+
   const { theme, todos } = state;
   const completedCount = todos.filter((t) => t.completed).length;
   const totalCount = todos.length;
@@ -241,20 +250,44 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({
     setTitleInput(state.title);
   }, [state.title]);
 
-  // Check widget visibility on load & periodically
+  // Automatic update check on app launch
   useEffect(() => {
-    const checkVisibility = async () => {
+    const checkTimer = setTimeout(async () => {
       try {
-        const open = await invoke<boolean>("is_widget_open");
-        setIsWidgetOpen(open);
-      } catch (err) {
-        console.warn("Could not check widget state", err);
+        const info = await checkForUpdate();
+        if (info && info.hasUpdate) {
+          setUpdateInfo(info);
+          const dismissed = localStorage.getItem("dismissed_update_version");
+          if (dismissed !== info.version) {
+            setIsUpdateModalOpen(true);
+          }
+        }
+      } catch (e) {
+        console.warn("Auto update check failed:", e);
       }
-    };
-    checkVisibility();
-    const interval = setInterval(checkVisibility, 2500);
-    return () => clearInterval(interval);
+    }, 2500);
+
+    return () => clearTimeout(checkTimer);
   }, []);
+
+  const handleManualCheckUpdates = async () => {
+    setIsCheckingUpdate(true);
+    setUpdateStatusMessage(null);
+    try {
+      const info = await checkForUpdate();
+      if (info && info.hasUpdate) {
+        setUpdateInfo(info);
+        setIsUpdateModalOpen(true);
+        setUpdateStatusMessage(`Update v${info.version} available!`);
+      } else {
+        setUpdateStatusMessage(`You're running the latest version (v${CURRENT_VERSION}).`);
+      }
+    } catch (e) {
+      setUpdateStatusMessage("Could not connect to update server.");
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   const handleToggleWidget = async () => {
     try {
@@ -389,8 +422,21 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({
           </button>
         </nav>
 
-        {/* Right: Running Timer Status + Sticky Widget Toggle */}
-        <div className="flex items-center gap-3">
+        {/* Right: Update Badge + Running Timer Status + Sticky Widget Toggle */}
+        <div className="flex items-center gap-2.5">
+          {/* Update Available Header Notification Pill */}
+          {updateInfo && updateInfo.hasUpdate && (
+            <button
+              type="button"
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/40 text-xs font-semibold cursor-pointer animate-pulse hover:bg-sky-500/30 transition-colors shadow-sm"
+              title="Click to view update details and download"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+              <span>Update v{updateInfo.version} Available!</span>
+            </button>
+          )}
+
           {/* Mini Running Timer Badge */}
           {timer.timerState.isRunning && (
             <button
@@ -442,7 +488,13 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({
       {/* Main Workspace Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6">
         {activeView === "appearance" ? (
-          <AppearanceSettings theme={theme} onUpdateTheme={onUpdateTheme} />
+          <AppearanceSettings 
+            theme={theme} 
+            onUpdateTheme={onUpdateTheme}
+            onCheckUpdates={handleManualCheckUpdates}
+            isCheckingUpdate={isCheckingUpdate}
+            updateStatusMessage={updateStatusMessage}
+          />
         ) : (
           <div
             className={`grid gap-6 items-start ${
@@ -644,6 +696,14 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({
           </div>
         )}
       </main>
+
+      {/* Auto-Update Notification Modal */}
+      <UpdateNotificationModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        updateInfo={updateInfo}
+        onDismissVersion={(v) => localStorage.setItem("dismissed_update_version", v)}
+      />
     </div>
   );
 };

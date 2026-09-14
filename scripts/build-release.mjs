@@ -48,22 +48,26 @@ if (fs.existsSync(msiDir)) {
 
 // 3. Prepare release files map
 const filesToDeploy = [
-  { source: portableExe, targetName: "Todo-Overlay-Portable.exe", desc: "Portable Executable (No install needed)" },
-  { source: setupExe, targetName: "Todo-Overlay-Setup.exe", desc: "NSIS Installer Setup (.exe)" },
-  { source: setupMsi, targetName: "Todo-Overlay-Setup.msi", desc: "MSI Windows Installer (.msi)" },
+  { source: portableExe, targetName: "Todo-App-Portable.exe", desc: "Portable Executable (No install needed)" },
+  { source: setupExe, targetName: "Todo-App-Setup.exe", desc: "EXE Setup Installer (.exe)" },
+  { source: setupMsi, targetName: "Todo-App-Setup.msi", desc: "MSI Setup Installer (.msi)" },
 ];
 
-// 4. Clean & copy to release folders
+// 4. Copy to release folders
 for (const dir of releaseDirs) {
-  if (fs.existsSync(dir)) {
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
   fs.mkdirSync(dir, { recursive: true });
 
   for (const item of filesToDeploy) {
     if (item.source && fs.existsSync(item.source)) {
       const destPath = path.resolve(dir, item.targetName);
-      fs.copyFileSync(item.source, destPath);
+      try {
+        if (fs.existsSync(destPath)) {
+          fs.unlinkSync(destPath);
+        }
+        fs.copyFileSync(item.source, destPath);
+      } catch (err) {
+        console.warn(`Warning copying to ${destPath}:`, err.message);
+      }
     }
   }
 }

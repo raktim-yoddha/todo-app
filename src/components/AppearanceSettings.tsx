@@ -5,6 +5,9 @@ import { Palette, Sliders, Type, Sparkles } from "lucide-react";
 interface AppearanceSettingsProps {
   theme: OverlayTheme;
   onUpdateTheme: (newTheme: OverlayTheme) => Promise<void>;
+  onCheckUpdates: () => Promise<void>;
+  isCheckingUpdate: boolean;
+  updateStatusMessage: string | null;
 }
 
 const PRESET_THEMES = [
@@ -19,6 +22,9 @@ const PRESET_THEMES = [
 export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   theme,
   onUpdateTheme,
+  onCheckUpdates,
+  isCheckingUpdate,
+  updateStatusMessage,
 }) => {
   const updateThemeField = <K extends keyof OverlayTheme>(key: K, value: OverlayTheme[K]) => {
     onUpdateTheme({
@@ -332,6 +338,42 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
             </label>
           </div>
         </div>
+      </div>
+
+      {/* Software Updates & About Card */}
+      <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-5 shadow-xl flex items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-white">Todo Studio</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-neutral-800 text-sky-400 border border-neutral-700">
+              v0.1.0
+            </span>
+          </div>
+          <p className="text-xs text-neutral-400 mt-1">
+            Free, open-source productivity app with task management and Pomodoro timer.
+          </p>
+          {updateStatusMessage && (
+            <p className="text-xs text-sky-400 font-medium mt-1.5 animate-in fade-in">
+              {updateStatusMessage}
+            </p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={onCheckUpdates}
+          disabled={isCheckingUpdate}
+          className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition-all border border-neutral-700 cursor-pointer shrink-0"
+        >
+          {isCheckingUpdate ? (
+            <>
+              <span className="w-3.5 h-3.5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+              <span>Checking...</span>
+            </>
+          ) : (
+            <span>Check for Updates</span>
+          )}
+        </button>
       </div>
     </div>
   );
