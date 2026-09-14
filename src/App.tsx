@@ -1,0 +1,248 @@
+import { useState, useEffect, useCallback } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { OverlayState, OverlayTheme } from "./types";
+import { StickyWidget } from "./components/StickyWidget";
+import { AppDashboard } from "./components/AppDashboard";
+import { useTimer } from "./hooks/useTimer";
+
+const defaultState: OverlayState = {
+  title: "TONIGHT'S GOAL",
+  todos: [
+    { id: "1", text: "Make a desktop app for to do overlay", completed: false },
+    { id: "2", text: "improve Orchestration layer Edge cases", completed: false },
+    { id: "3", text: "Fix the browser use feature edge cases", completed: false },
+    { id: "4", text: "Release version 0.2.1", completed: false },
+    { id: "5", text: "40 hours watch time", completed: false },
+  ],
+  theme: {
+    cardColor: "#0a0c10",
+    textColor: "#ffffff",
+    accentColor: "#60a5fa",
+    opacity: 96,
+    blur: 20,
+    width: 440,
+    radius: 20,
+    padding: 22,
+    spacing: 12,
+    font: "inter",
+    density: "comfortable",
+    showTitle: true,
+    progressStyle: "both",
+    completedStyle: "strike",
+    animation: "subtle",
+  },
+};
+
+export default function App() {
+  const [windowLabel, setWindowLabel] = useState<string>("main");
+  const [state, setState] = useState<OverlayState>(defaultState);
+  const [loading, setLoading] = useState(true);
+  const timer = useTimer();
+
+  // Detect which Tauri window this is
+  useEffect(() => {
+    try {
+      const appWindow = getCurrentWebviewWindow();
+      if (appWindow && appWindow.label) {
+        setWindowLabel(appWindow.label);
+      } else {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("window") === "widget") {
+          setWindowLabel("widget");
+        }
+      }
+    } catch {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("window") === "widget") {
+        setWindowLabel("widget");
+      }
+    }
+  }, []);
+
+  // Update root transparency styling
+  useEffect(() => {
+    if (windowLabel === "widget") {
+      document.body.classList.add("is-widget");
+      document.documentElement.classList.add("is-widget");
+    } else {
+      document.body.classList.remove("is-widget");
+      document.documentElement.classList.remove("is-widget");
+    }
+  }, [windowLabel]);
+
+  // Native Tauri event listener for instant zero-latency cross-window synchronization
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    let isMounted = true;
+
+    listen<OverlayState>("state-changed", (event) => {
+      if (isMounted && event.payload) {
+        setState(event.payload);
+      }
+    })
+      .then((fn) => {
+        if (isMounted) {
+          unlisten = fn;
+        } else {
+          fn();
+        }
+      })
+      .catch((err) => {
+        console.warn("Native event listen error (preview mode):", err);
+      });
+
+    return () => {
+      isMounted = false;
+      if (unlisten) unlisten();
+    };
+  }, []);
+
+  // Fetch initial state
+  useEffect(() => {
+    async function fetchInitial() {
+      try {
+        const fetchedState = await invoke<OverlayState>("get_state");
+        if (fetchedState) setState(fetchedState);
+      } catch (err) {
+        console.warn("Tauri API not active or preview mode:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInitial();
+  }, []);
+
+  const handleAddTodo = useCallback(async (text: string) => {
+    setState((prev) => ({
+      ...prev,
+      todos: [...prev.todos, { id: `temp-${Date.now()}`, text, completed: false }],
+    }));
+    try {
+      const updated = await invoke<OverlayState>("add_todo", { text });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("add_todo error:", e);
+    }
+  }, []);
+
+  const handleToggleTodo = useCallback(async (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
+    }));
+    try {
+      const updated = await invoke<OverlayState>("toggle_todo", { id });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("toggle_todo error:", e);
+    }
+  }, []);
+
+  const handleEditTodo = useCallback(async (id: string, text: string) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((t) => (t.id === id ? { ...t, text } : t)),
+    }));
+    try {
+      const updated = await invoke<OverlayState>("edit_todo", { id, text });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("edit_todo error:", e);
+    }
+  }, []);
+
+  const handleDeleteTodo = useCallback(async (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.filter((t) => t.id !== id),
+    }));
+    try {
+      const updated = await invoke<OverlayState>("delete_todo", { id });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("delete_todo error:", e);
+    }
+  }, []);
+
+  const handleReorderTodos = useCallback(async (fromIndex: number, toIndex: number) => {
+    setState((prev) => {
+      const newTodos = [...prev.todos];
+      const [moved] = newTodos.splice(fromIndex, 1);
+      newTodos.splice(toIndex, 0, moved);
+      return { ...prev, todos: newTodos };
+    });
+    try {
+      const updated = await invoke<OverlayState>("reorder_todos", {
+        fromIndex,
+        toIndex,
+      });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("reorder_todos error:", e);
+    }
+  }, []);
+
+  const handleSetTitle = useCallback(async (title: string) => {
+    setState((prev) => ({ ...prev, title }));
+    try {
+      const updated = await invoke<OverlayState>("set_title", { title });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("set_title error:", e);
+    }
+  }, []);
+
+  const handleUpdateTheme = useCallback(async (newTheme: OverlayTheme) => {
+    setState((prev) => ({ ...prev, theme: newTheme }));
+    try {
+      const updated = await invoke<OverlayState>("update_theme", {
+        theme: newTheme,
+      });
+      if (updated) setState(updated);
+    } catch (e) {
+      console.error("update_theme error:", e);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen bg-slate-950 text-slate-400 text-xs font-mono">
+        Connecting to Todo Studio...
+      </div>
+    );
+  }
+
+  // If this window is the floating Sticky Widget:
+  if (windowLabel === "widget") {
+    return (
+      <StickyWidget
+        state={state}
+        timer={timer}
+        onAddTodo={handleAddTodo}
+        onToggleTodo={handleToggleTodo}
+        onEditTodo={handleEditTodo}
+        onDeleteTodo={handleDeleteTodo}
+        onReorderTodos={handleReorderTodos}
+        onSetTitle={handleSetTitle}
+      />
+    );
+  }
+
+  // Otherwise, render the Main Studio & Customizer App
+  return (
+    <AppDashboard
+      state={state}
+      timer={timer}
+      onAddTodo={handleAddTodo}
+      onToggleTodo={handleToggleTodo}
+      onEditTodo={handleEditTodo}
+      onDeleteTodo={handleDeleteTodo}
+      onReorderTodos={handleReorderTodos}
+      onSetTitle={handleSetTitle}
+      onUpdateTheme={handleUpdateTheme}
+    />
+  );
+}

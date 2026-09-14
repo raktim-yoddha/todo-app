@@ -1,0 +1,308 @@
+pub mod models;
+pub mod store;
+
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    AppHandle, Emitter, Manager, State, WindowEvent,
+};
+use uuid::Uuid;
+
+use models::{OverlayState, OverlayTheme, TodoItem};
+use store::{load_state, save_state};
+
+pub struct AppContext {
+    pub state: Arc<RwLock<OverlayState>>,
+    pub app: Arc<RwLock<Option<AppHandle>>>,
+}
+
+#[tauri::command]
+async fn get_state(ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let current = ctx.state.read().await;
+    Ok(current.clone())
+}
+
+#[tauri::command]
+async fn set_state(new_state: OverlayState, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    {
+        let mut current = ctx.state.write().await;
+        *current = new_state.clone();
+        save_state(&current)?;
+    }
+    broadcast_update(&ctx, &new_state).await;
+    Ok(new_state)
+}
+
+#[tauri::command]
+async fn add_todo(text: String, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("Todo text cannot be empty".into());
+    }
+
+    let updated = {
+        let mut current = ctx.state.write().await;
+        let new_item = TodoItem {
+            id: Uuid::new_v4().to_string(),
+            text,
+            completed: false,
+        };
+        current.todos.push(new_item);
+        save_state(&current)?;
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+#[tauri::command]
+async fn toggle_todo(id: String, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let updated = {
+        let mut current = ctx.state.write().await;
+        if let Some(item) = current.todos.iter_mut().find(|t| t.id == id) {
+            item.completed = !item.completed;
+        }
+        save_state(&current)?;
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+#[tauri::command]
+async fn edit_todo(id: String, text: String, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("Todo text cannot be empty".into());
+    }
+
+    let updated = {
+        let mut current = ctx.state.write().await;
+        if let Some(item) = current.todos.iter_mut().find(|t| t.id == id) {
+            item.text = text;
+        }
+        save_state(&current)?;
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+#[tauri::command]
+async fn delete_todo(id: String, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let updated = {
+        let mut current = ctx.state.write().await;
+        current.todos.retain(|t| t.id != id);
+        save_state(&current)?;
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+#[tauri::command]
+async fn reorder_todos(from_index: usize, to_index: usize, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let updated = {
+        let mut current = ctx.state.write().await;
+        let len = current.todos.len();
+        if from_index < len && to_index < len {
+            let item = current.todos.remove(from_index);
+            current.todos.insert(to_index, item);
+            save_state(&current)?;
+        }
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+#[tauri::command]
+async fn update_theme(theme: OverlayTheme, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let updated = {
+        let mut current = ctx.state.write().await;
+        current.theme = theme;
+        save_state(&current)?;
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+#[tauri::command]
+async fn set_title(title: String, ctx: State<'_, AppContext>) -> Result<OverlayState, String> {
+    let updated = {
+        let mut current = ctx.state.write().await;
+        current.title = title.trim().to_string();
+        save_state(&current)?;
+        current.clone()
+    };
+
+    broadcast_update(&ctx, &updated).await;
+    Ok(updated)
+}
+
+
+#[tauri::command]
+fn show_main_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        window.show().map_err(|e| e.to_string())?;
+        window.unminimize().map_err(|e| e.to_string())?;
+        window.set_focus().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn toggle_widget_window(app: AppHandle) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("widget") {
+        let is_vis = window.is_visible().unwrap_or(false);
+        if is_vis {
+            window.hide().map_err(|e| e.to_string())?;
+            Ok(false)
+        } else {
+            window.show().map_err(|e| e.to_string())?;
+            window.unminimize().map_err(|e| e.to_string())?;
+            window.set_focus().map_err(|e| e.to_string())?;
+            Ok(true)
+        }
+    } else {
+        Err("Widget window not found".into())
+    }
+}
+
+#[tauri::command]
+fn close_widget_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("widget") {
+        window.hide().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn is_widget_open(app: AppHandle) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("widget") {
+        Ok(window.is_visible().unwrap_or(false))
+    } else {
+        Ok(false)
+    }
+}
+
+async fn broadcast_update(ctx: &AppContext, state: &OverlayState) {
+    if let Some(app) = &*ctx.app.read().await {
+        let _ = app.emit("state-changed", state);
+    }
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    let initial_state = load_state();
+    let shared_state = Arc::new(RwLock::new(initial_state));
+    let app_handle_holder = Arc::new(RwLock::new(None));
+
+    let app_context = AppContext {
+        state: shared_state,
+        app: app_handle_holder.clone(),
+    };
+
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .manage(app_context)
+        .invoke_handler(tauri::generate_handler![
+            get_state,
+            set_state,
+            add_todo,
+            toggle_todo,
+            edit_todo,
+            delete_todo,
+            reorder_todos,
+            update_theme,
+            set_title,
+            show_main_window,
+            toggle_widget_window,
+            close_widget_window,
+            is_widget_open
+        ])
+        .setup(move |app| {
+            let handle = app.handle().clone();
+            let app_holder = app_handle_holder.clone();
+            tauri::async_runtime::spawn(async move {
+                *app_holder.write().await = Some(handle);
+            });
+
+            let show_app_item = MenuItem::with_id(app, "show_app", "Open Studio & Customizer", true, None::<&str>)?;
+            let toggle_widget_item = MenuItem::with_id(app, "toggle_widget", "Toggle Sticky Widget", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit Todo App", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_app_item, &toggle_widget_item, &quit_item])?;
+
+            let mut builder = TrayIconBuilder::new()
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .tooltip("Todo Studio Active")
+                .on_menu_event(|app, event| {
+                    match event.id.as_ref() {
+                        "show_app" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.unminimize();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "toggle_widget" => {
+                            if let Some(window) = app.get_webview_window("widget") {
+                                if window.is_visible().unwrap_or(false) {
+                                    let _ = window.hide();
+                                } else {
+                                    let _ = window.show();
+                                    let _ = window.unminimize();
+                                    let _ = window.set_focus();
+                                }
+                            }
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.unminimize();
+                            let _ = window.set_focus();
+                        }
+                    }
+                });
+
+            if let Some(icon) = app.default_window_icon() {
+                builder = builder.icon(icon.clone());
+            }
+
+            let _tray = builder.build(app)?;
+
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                // Keep application running in background when window is closed
+                api.prevent_close();
+                let _ = window.hide();
+            }
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
