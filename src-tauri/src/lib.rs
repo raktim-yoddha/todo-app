@@ -151,6 +151,47 @@ async fn set_title(title: String, ctx: State<'_, AppContext>) -> Result<OverlayS
 
 
 #[tauri::command]
+fn minimize_main_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        window.minimize().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn toggle_maximize_main_window(app: AppHandle) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("main") {
+        let is_max = window.is_maximized().unwrap_or(false);
+        if is_max {
+            window.unmaximize().map_err(|e| e.to_string())?;
+            Ok(false)
+        } else {
+            window.maximize().map_err(|e| e.to_string())?;
+            Ok(true)
+        }
+    } else {
+        Err("Main window not found".into())
+    }
+}
+
+#[tauri::command]
+fn close_main_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        window.close().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn is_main_maximized(app: AppHandle) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("main") {
+        Ok(window.is_maximized().unwrap_or(false))
+    } else {
+        Ok(false)
+    }
+}
+
+#[tauri::command]
 fn show_main_window(app: AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
         window.show().map_err(|e| e.to_string())?;
@@ -225,6 +266,10 @@ pub fn run() {
             reorder_todos,
             update_theme,
             set_title,
+            minimize_main_window,
+            toggle_maximize_main_window,
+            close_main_window,
+            is_main_maximized,
             show_main_window,
             toggle_widget_window,
             close_widget_window,
@@ -237,15 +282,15 @@ pub fn run() {
                 *app_holder.write().await = Some(handle);
             });
 
-            let show_app_item = MenuItem::with_id(app, "show_app", "Open Studio & Customizer", true, None::<&str>)?;
-            let toggle_widget_item = MenuItem::with_id(app, "toggle_widget", "Toggle Sticky Widget", true, None::<&str>)?;
-            let quit_item = MenuItem::with_id(app, "quit", "Quit Todo App", true, None::<&str>)?;
+            let show_app_item = MenuItem::with_id(app, "show_app", "Open Taskmaster Everywhere", true, None::<&str>)?;
+            let toggle_widget_item = MenuItem::with_id(app, "toggle_widget", "Toggle Taskmaster Widget", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "Quit Taskmaster Everywhere", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_app_item, &toggle_widget_item, &quit_item])?;
 
             let mut builder = TrayIconBuilder::new()
                 .menu(&menu)
                 .show_menu_on_left_click(false)
-                .tooltip("Todo Studio Active")
+                .tooltip("Taskmaster Everywhere")
                 .on_menu_event(|app, event| {
                     match event.id.as_ref() {
                         "show_app" => {

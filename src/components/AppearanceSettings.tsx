@@ -11,12 +11,12 @@ interface AppearanceSettingsProps {
 }
 
 const PRESET_THEMES = [
-  { name: "Onyx Minimal", card: "#0a0c10", text: "#ffffff", accent: "#60a5fa" },
-  { name: "Midnight Obsidian", card: "#09090b", text: "#f4f4f5", accent: "#f59e0b" },
-  { name: "Cyber Violet", card: "#130f26", text: "#f5f3ff", accent: "#a855f7" },
-  { name: "Emerald Focus", card: "#041c14", text: "#ecfdf5", accent: "#10b981" },
-  { name: "Nord Frost", card: "#0f172a", text: "#f8fafc", accent: "#38bdf8" },
-  { name: "Monochrome Pitch", card: "#000000", text: "#ededed", accent: "#ffffff" },
+  { name: "Liquid Glass Coral", card: "#22252a", text: "#ffffff", accent: "#ff5733" },
+  { name: "Smoked Obsidian", card: "#181a1e", text: "#f4f4f5", accent: "#ff6847" },
+  { name: "Deep Amber", card: "#23211e", text: "#ffffff", accent: "#ff902b" },
+  { name: "Slate Minimal", card: "#20232a", text: "#f8fafc", accent: "#ff5733" },
+  { name: "Monochrome Pitch", card: "#16171a", text: "#ffffff", accent: "#ffffff" },
+  { name: "Frost Graphite", card: "#262930", text: "#ffffff", accent: "#ff5733" },
 ];
 
 export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
@@ -45,13 +45,15 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
       {/* Preset Themes Card */}
-      <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-2 pb-3 border-b border-neutral-800/60 text-sm font-semibold text-white">
-          <Sparkles className="w-4 h-4 text-sky-400" />
+      <div className="liquid-glass-card rounded-[22px] p-6 shadow-xl">
+        <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.06] text-sm font-semibold text-white">
+          <div className="w-7 h-7 rounded-xl bg-[#ff5733]/15 flex items-center justify-center text-[#ff5733]">
+            <Sparkles className="w-4 h-4" />
+          </div>
           <span>Curated Color Presets</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mt-5">
           {PRESET_THEMES.map((preset) => {
             const isSelected =
               theme.cardColor === preset.card && theme.accentColor === preset.accent;
@@ -60,10 +62,10 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
                 key={preset.name}
                 type="button"
                 onClick={() => applyPreset(preset)}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all cursor-pointer ${
+                className={`p-3.5 rounded-2xl border flex flex-col items-center gap-2.5 transition-all cursor-pointer ${
                   isSelected
-                    ? "border-sky-500/80 bg-sky-500/10 shadow-md"
-                    : "border-neutral-800 bg-black/40 hover:border-neutral-700 hover:bg-black/60"
+                    ? "border-[#ff5733] bg-[#ff5733]/15 shadow-lg shadow-[#ff5733]/20"
+                    : "border-white/[0.06] bg-[#14161a]/60 hover:border-white/20 hover:bg-white/[0.04]"
                 }`}
               >
                 <div className="flex items-center gap-1.5">
@@ -72,7 +74,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
                     style={{ backgroundColor: preset.card }}
                   />
                   <div
-                    className="w-4 h-4 rounded-full"
+                    className="w-4 h-4 rounded-full shadow-sm"
                     style={{ backgroundColor: preset.accent }}
                   />
                 </div>
@@ -86,28 +88,30 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
       </div>
 
       {/* Custom Color Palette */}
-      <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-2 pb-3 border-b border-neutral-800/60 text-sm font-semibold text-white">
-          <Palette className="w-4 h-4 text-sky-400" />
+      <div className="liquid-glass-card rounded-[22px] p-6 shadow-xl">
+        <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.06] text-sm font-semibold text-white">
+          <div className="w-7 h-7 rounded-xl bg-[#ff5733]/15 flex items-center justify-center text-[#ff5733]">
+            <Palette className="w-4 h-4" />
+          </div>
           <span>Custom Palette</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
           {/* Card color */}
           <div>
             <label className="block text-xs text-neutral-400 font-medium mb-1.5">Card Background</label>
-            <div className="flex items-center gap-2 bg-black/60 border border-neutral-800 rounded-xl px-2.5 py-2">
+            <div className="flex items-center gap-2.5 bg-[#14161a]/90 border border-white/[0.08] rounded-xl px-3 py-2">
               <input
                 type="color"
-                value={theme.cardColor || "#0a0c10"}
+                value={theme.cardColor || "#22252a"}
                 onChange={(e) => updateThemeField("cardColor", e.target.value)}
                 className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0"
               />
               <input
                 type="text"
-                value={theme.cardColor || "#0a0c10"}
+                value={theme.cardColor || "#22252a"}
                 onChange={(e) => updateThemeField("cardColor", e.target.value)}
-                className="w-full bg-transparent text-xs font-mono text-neutral-300 focus:outline-none uppercase"
+                className="w-full bg-transparent text-xs font-mono text-white focus:outline-none uppercase"
               />
             </div>
           </div>
@@ -115,7 +119,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           {/* Text color */}
           <div>
             <label className="block text-xs text-neutral-400 font-medium mb-1.5">Text Color</label>
-            <div className="flex items-center gap-2 bg-black/60 border border-neutral-800 rounded-xl px-2.5 py-2">
+            <div className="flex items-center gap-2.5 bg-[#14161a]/90 border border-white/[0.08] rounded-xl px-3 py-2">
               <input
                 type="color"
                 value={theme.textColor || "#ffffff"}
@@ -126,7 +130,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
                 type="text"
                 value={theme.textColor || "#ffffff"}
                 onChange={(e) => updateThemeField("textColor", e.target.value)}
-                className="w-full bg-transparent text-xs font-mono text-neutral-300 focus:outline-none uppercase"
+                className="w-full bg-transparent text-xs font-mono text-white focus:outline-none uppercase"
               />
             </div>
           </div>
@@ -134,18 +138,18 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           {/* Accent color */}
           <div>
             <label className="block text-xs text-neutral-400 font-medium mb-1.5">Accent Color</label>
-            <div className="flex items-center gap-2 bg-black/60 border border-neutral-800 rounded-xl px-2.5 py-2">
+            <div className="flex items-center gap-2.5 bg-[#14161a]/90 border border-white/[0.08] rounded-xl px-3 py-2">
               <input
                 type="color"
-                value={theme.accentColor || "#60a5fa"}
+                value={theme.accentColor || "#ff5733"}
                 onChange={(e) => updateThemeField("accentColor", e.target.value)}
                 className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0"
               />
               <input
                 type="text"
-                value={theme.accentColor || "#60a5fa"}
+                value={theme.accentColor || "#ff5733"}
                 onChange={(e) => updateThemeField("accentColor", e.target.value)}
-                className="w-full bg-transparent text-xs font-mono text-neutral-300 focus:outline-none uppercase"
+                className="w-full bg-transparent text-xs font-mono text-white focus:outline-none uppercase"
               />
             </div>
           </div>
@@ -153,17 +157,19 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
       </div>
 
       {/* Geometry, Glassmorphism & Sizing */}
-      <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-2 pb-3 border-b border-neutral-800/60 text-sm font-semibold text-white">
-          <Sliders className="w-4 h-4 text-sky-400" />
+      <div className="liquid-glass-card rounded-[22px] p-6 shadow-xl">
+        <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.06] text-sm font-semibold text-white">
+          <div className="w-7 h-7 rounded-xl bg-[#ff5733]/15 flex items-center justify-center text-[#ff5733]">
+            <Sliders className="w-4 h-4" />
+          </div>
           <span>Sticky Widget Dimensions & Glassmorphism</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mt-5">
           <div>
-            <div className="flex justify-between text-xs text-neutral-400 mb-1.5 font-medium">
+            <div className="flex justify-between text-xs text-neutral-400 mb-2 font-medium">
               <span>Card Width</span>
-              <span className="font-mono text-neutral-500">{theme.width ?? 440}px</span>
+              <span className="font-mono text-neutral-300">{theme.width ?? 440}px</span>
             </div>
             <input
               type="range"
@@ -171,103 +177,105 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
               max="800"
               value={theme.width ?? 440}
               onChange={(e) => updateThemeField("width", Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+              className="w-full accent-[#ff5733] cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-xs text-neutral-400 mb-1.5 font-medium">
+            <div className="flex justify-between text-xs text-neutral-400 mb-2 font-medium">
               <span>Corner Roundness</span>
-              <span className="font-mono text-neutral-500">{theme.radius ?? 20}px</span>
+              <span className="font-mono text-neutral-300">{theme.radius ?? 22}px</span>
             </div>
             <input
               type="range"
               min="0"
               max="48"
-              value={theme.radius ?? 20}
+              value={theme.radius ?? 22}
               onChange={(e) => updateThemeField("radius", Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+              className="w-full accent-[#ff5733] cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-xs text-neutral-400 mb-1.5 font-medium">
+            <div className="flex justify-between text-xs text-neutral-400 mb-2 font-medium">
               <span>Internal Padding</span>
-              <span className="font-mono text-neutral-500">{theme.padding ?? 20}px</span>
+              <span className="font-mono text-neutral-300">{theme.padding ?? 12}px</span>
             </div>
             <input
               type="range"
-              min="8"
-              max="48"
-              value={theme.padding ?? 20}
+              min="6"
+              max="32"
+              value={theme.padding ?? 12}
               onChange={(e) => updateThemeField("padding", Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+              className="w-full accent-[#ff5733] cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-xs text-neutral-400 mb-1.5 font-medium">
+            <div className="flex justify-between text-xs text-neutral-400 mb-2 font-medium">
               <span>Glass Opacity</span>
-              <span className="font-mono text-neutral-500">{theme.opacity ?? 96}%</span>
+              <span className="font-mono text-neutral-300">{theme.opacity ?? 92}%</span>
             </div>
             <input
               type="range"
               min="10"
               max="100"
-              value={theme.opacity ?? 96}
+              value={theme.opacity ?? 92}
               onChange={(e) => updateThemeField("opacity", Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+              className="w-full accent-[#ff5733] cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-xs text-neutral-400 mb-1.5 font-medium">
+            <div className="flex justify-between text-xs text-neutral-400 mb-2 font-medium">
               <span>Backdrop Blur</span>
-              <span className="font-mono text-neutral-500">{theme.blur ?? 20}px</span>
+              <span className="font-mono text-neutral-300">{theme.blur ?? 30}px</span>
             </div>
             <input
               type="range"
               min="0"
               max="50"
-              value={theme.blur ?? 20}
+              value={theme.blur ?? 30}
               onChange={(e) => updateThemeField("blur", Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+              className="w-full accent-[#ff5733] cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
             />
           </div>
 
           <div>
-            <div className="flex justify-between text-xs text-neutral-400 mb-1.5 font-medium">
+            <div className="flex justify-between text-xs text-neutral-400 mb-2 font-medium">
               <span>Item Spacing</span>
-              <span className="font-mono text-neutral-500">{theme.spacing ?? 12}px</span>
+              <span className="font-mono text-neutral-300">{theme.spacing ?? 10}px</span>
             </div>
             <input
               type="range"
               min="4"
               max="32"
-              value={theme.spacing ?? 12}
+              value={theme.spacing ?? 10}
               onChange={(e) => updateThemeField("spacing", Number(e.target.value))}
-              className="w-full accent-sky-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
+              className="w-full accent-[#ff5733] cursor-pointer h-1.5 bg-neutral-800 rounded-lg appearance-none"
             />
           </div>
         </div>
       </div>
 
       {/* Typography & Display Behavior */}
-      <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-2 pb-3 border-b border-neutral-800/60 text-sm font-semibold text-white">
-          <Type className="w-4 h-4 text-sky-400" />
+      <div className="liquid-glass-card rounded-[22px] p-6 shadow-xl">
+        <div className="flex items-center gap-2.5 pb-4 border-b border-white/[0.06] text-sm font-semibold text-white">
+          <div className="w-7 h-7 rounded-xl bg-[#ff5733]/15 flex items-center justify-center text-[#ff5733]">
+            <Type className="w-4 h-4" />
+          </div>
           <span>Typography & Task Styles</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-5">
           <div>
-            <label className="block text-xs text-neutral-400 mb-1 font-medium">Font Family</label>
+            <label className="block text-xs text-neutral-400 mb-1.5 font-medium">Font Family</label>
             <select
               value={theme.font || "inter"}
               onChange={(e) => updateThemeField("font", e.target.value)}
-              className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[#14161a] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff5733]"
             >
-              <option value="inter">Inter (Clean Modern)</option>
+              <option value="inter">Inter (Modern Clean)</option>
               <option value="jakarta">Plus Jakarta Sans</option>
               <option value="space">JetBrains Mono</option>
               <option value="serif">Georgia Serif</option>
@@ -275,11 +283,11 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-1 font-medium">Progress Style</label>
+            <label className="block text-xs text-neutral-400 mb-1.5 font-medium">Progress Style</label>
             <select
               value={theme.progressStyle || "both"}
               onChange={(e) => updateThemeField("progressStyle", e.target.value)}
-              className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[#14161a] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff5733]"
             >
               <option value="both">Bar and fraction (e.g. 2/5)</option>
               <option value="bar">Bar only</option>
@@ -289,11 +297,11 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-1 font-medium">Completed Task Style</label>
+            <label className="block text-xs text-neutral-400 mb-1.5 font-medium">Completed Task Style</label>
             <select
               value={theme.completedStyle || "strike"}
               onChange={(e) => updateThemeField("completedStyle", e.target.value)}
-              className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[#14161a] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff5733]"
             >
               <option value="strike">Strikethrough & Dim</option>
               <option value="dim">Dim text only</option>
@@ -302,11 +310,11 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-1 font-medium">Task Density</label>
+            <label className="block text-xs text-neutral-400 mb-1.5 font-medium">Task Density</label>
             <select
               value={theme.density || "comfortable"}
               onChange={(e) => updateThemeField("density", e.target.value)}
-              className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[#14161a] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff5733]"
             >
               <option value="comfortable">Comfortable</option>
               <option value="compact">Compact (High density)</option>
@@ -314,11 +322,11 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-1 font-medium">Motion Animations</label>
+            <label className="block text-xs text-neutral-400 mb-1.5 font-medium">Motion Animations</label>
             <select
               value={theme.animation || "subtle"}
               onChange={(e) => updateThemeField("animation", e.target.value)}
-              className="w-full bg-black/60 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"
+              className="w-full bg-[#14161a] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff5733]"
             >
               <option value="subtle">Subtle & Smooth</option>
               <option value="playful">Playful</option>
@@ -332,28 +340,29 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
                 type="checkbox"
                 checked={theme.showTitle ?? true}
                 onChange={(e) => updateThemeField("showTitle", e.target.checked)}
-                className="w-4 h-4 accent-sky-500 rounded cursor-pointer"
+                className="w-4 h-4 accent-[#ff5733] rounded cursor-pointer"
               />
-              <span className="text-xs text-neutral-300 font-medium">Show List Title</span>
+              <span className="text-xs text-neutral-200 font-medium">Show List Title</span>
             </label>
           </div>
         </div>
       </div>
 
       {/* Software Updates & About Card */}
-      <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-5 shadow-xl flex items-center justify-between gap-4">
+      <div className="liquid-glass-card rounded-[22px] p-6 shadow-xl flex items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-white">Todo Studio</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-neutral-800 text-sky-400 border border-neutral-700">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Taskmaster Everywhere" className="w-6 h-6 object-contain rounded-md" />
+            <span className="text-sm font-bold text-white tracking-tight">Taskmaster Everywhere</span>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#ff5733]/15 text-[#ff5733] border border-[#ff5733]/30">
               v0.1.0
             </span>
           </div>
-          <p className="text-xs text-neutral-400 mt-1">
-            Free, open-source productivity app with task management and Pomodoro timer.
+          <p className="text-xs text-neutral-400 mt-1.5">
+            Liquid glass task management, desktop widget, and Pomodoro focus timer.
           </p>
           {updateStatusMessage && (
-            <p className="text-xs text-sky-400 font-medium mt-1.5 animate-in fade-in">
+            <p className="text-xs text-[#ff5733] font-medium mt-1.5 animate-in fade-in">
               {updateStatusMessage}
             </p>
           )}
@@ -363,11 +372,11 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           type="button"
           onClick={onCheckUpdates}
           disabled={isCheckingUpdate}
-          className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 transition-all border border-neutral-700 cursor-pointer shrink-0"
+          className="liquid-coral-btn text-xs px-4 py-2.5 rounded-full font-semibold flex items-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
         >
           {isCheckingUpdate ? (
             <>
-              <span className="w-3.5 h-3.5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span>Checking...</span>
             </>
           ) : (

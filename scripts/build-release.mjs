@@ -14,11 +14,11 @@ const releaseDirs = [
 ];
 
 console.log("\n========================================================");
-console.log("  🚀 BUILDING TODO-OVERLAY TAURI PRODUCTION RELEASE");
+console.log("  BUILDING TASKMASTER EVERYWHERE TAURI PRODUCTION RELEASE");
 console.log("========================================================\n");
 
 // 1. Build frontend and Tauri packages
-console.log("📦 Compiling frontend and bundling Tauri (EXE, MSI, NSIS)...");
+console.log("[BUILD] Compiling frontend and bundling Tauri (EXE, MSI, NSIS)...");
 execSync("npx tauri build", {
   cwd: appRoot,
   stdio: "inherit",
@@ -30,7 +30,22 @@ const bundleDir = path.resolve(targetReleaseDir, "bundle");
 const nsisDir = path.resolve(bundleDir, "nsis");
 const msiDir = path.resolve(bundleDir, "msi");
 
-const portableExe = path.resolve(targetReleaseDir, "todo-overlay-app.exe");
+const candidateExeNames = [
+  "Taskmaster Everywhere.exe",
+  "Taskmaster-Everywhere.exe",
+  "taskmaster-everywhere.exe",
+  "TaskMaster.exe",
+  "todo-overlay-app.exe",
+];
+
+let portableExe = null;
+for (const name of candidateExeNames) {
+  const p = path.resolve(targetReleaseDir, name);
+  if (fs.existsSync(p)) {
+    portableExe = p;
+    break;
+  }
+}
 
 let setupExe = null;
 if (fs.existsSync(nsisDir)) {
@@ -48,9 +63,9 @@ if (fs.existsSync(msiDir)) {
 
 // 3. Prepare release files map
 const filesToDeploy = [
-  { source: portableExe, targetName: "Todo-App-Portable.exe", desc: "Portable Executable (No install needed)" },
-  { source: setupExe, targetName: "Todo-App-Setup.exe", desc: "EXE Setup Installer (.exe)" },
-  { source: setupMsi, targetName: "Todo-App-Setup.msi", desc: "MSI Setup Installer (.msi)" },
+  { source: portableExe, targetName: "Taskmaster-Everywhere-Portable.exe", desc: "Portable Executable (No install needed)" },
+  { source: setupExe, targetName: "Taskmaster-Everywhere-Setup.exe", desc: "EXE Setup Installer (.exe)" },
+  { source: setupMsi, targetName: "Taskmaster-Everywhere-Setup.msi", desc: "MSI Setup Installer (.msi)" },
 ];
 
 // 4. Copy to release folders
@@ -74,7 +89,7 @@ for (const dir of releaseDirs) {
 
 // 5. Output Summary
 console.log("\n========================================================");
-console.log("  ✅ RELEASE BUILD COMPLETED & REPLACED SUCCESSFULLY");
+console.log("  [SUCCESS] RELEASE BUILD COMPLETED & UPDATED SUCCESSFULLY");
 console.log("========================================================\n");
 console.log("The following releases have been generated and updated:\n");
 
@@ -88,11 +103,11 @@ for (const item of filesToDeploy) {
     console.log(`   Description: ${item.desc}`);
     console.log(`   Path: ${filePath}\n`);
   } else {
-    console.log(` ⚠️ ${item.targetName}: Not found\n`);
+    console.log(` [NOTICE] ${item.targetName}: Not found\n`);
   }
 }
 
-console.log("📁 Release directories:");
+console.log("Output release directories:");
 for (const dir of releaseDirs) {
   console.log(` - ${dir}`);
 }

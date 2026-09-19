@@ -17,15 +17,15 @@ const defaultState: OverlayState = {
     { id: "5", text: "40 hours watch time", completed: false },
   ],
   theme: {
-    cardColor: "#0a0c10",
+    cardColor: "#22252a",
     textColor: "#ffffff",
-    accentColor: "#60a5fa",
-    opacity: 96,
-    blur: 20,
+    accentColor: "#ff5733",
+    opacity: 92,
+    blur: 30,
     width: 440,
-    radius: 20,
-    padding: 22,
-    spacing: 12,
+    radius: 22,
+    padding: 12,
+    spacing: 8,
     font: "inter",
     density: "comfortable",
     showTitle: true,
@@ -210,7 +210,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen w-screen bg-slate-950 text-slate-400 text-xs font-mono">
-        Connecting to Todo Studio...
+        Connecting to TaskMaster...
       </div>
     );
   }

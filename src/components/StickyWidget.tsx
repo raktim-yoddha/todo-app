@@ -8,13 +8,15 @@ import {
   Plus, 
   Settings, 
   Trash2, 
-  Pin, 
   X, 
   GripVertical,
   ChevronUp,
   ChevronDown,
   Play,
-  Pause
+  Pause,
+  Clock,
+  Flame,
+  Hourglass
 } from "lucide-react";
 import { UseTimerReturn } from "../hooks/useTimer";
 import {
@@ -44,7 +46,7 @@ interface StickyWidgetProps {
 }
 
 function hexToRgba(hex: string, alpha: number) {
-  if (!hex) return "rgba(10, 12, 16, 0.95)";
+  if (!hex) return "rgba(34, 37, 44, 0.92)";
   hex = hex.replace("#", "");
   if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
   const r = parseInt(hex.substring(0, 2), 16) || 0;
@@ -122,28 +124,33 @@ const SortableTodoItem: React.FC<SortableItemProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-start gap-2.5 group/item transition-colors rounded-lg px-1 ${
+      className={`flex items-start gap-2 group/item transition-all rounded-xl px-1.5 ${
         density === "compact" ? "py-1" : "py-1.5"
-      } ${isDragging ? "bg-white/5 shadow-lg" : "hover:bg-white/[0.03]"}`}
+      } ${
+        isDragging 
+          ? "bg-white/10 shadow-lg border border-white/20" 
+          : "hover:bg-white/[0.04] border border-transparent hover:border-white/[0.05]"
+      }`}
     >
       {/* Hold and Drag Grip Handle */}
       <div
         {...attributes}
         {...listeners}
-        className="mt-1 p-0.5 cursor-grab active:cursor-grabbing text-neutral-600 hover:text-neutral-300 opacity-60 hover:opacity-100 transition-opacity touch-none"
+        className="mt-0.5 p-0.5 cursor-grab active:cursor-grabbing text-neutral-500 hover:text-white opacity-40 group-hover/item:opacity-100 transition-opacity touch-none shrink-0"
         title="Hold and drag to reorder"
       >
         <GripVertical className="w-3.5 h-3.5" />
       </div>
 
-      {/* Custom Rounded Checkbox */}
+      {/* Custom Rounded Liquid Glass Checkbox */}
       <button
         type="button"
         onClick={() => onToggle(todo.id)}
-        className="mt-0.5 w-[19px] h-[19px] min-w-[19px] rounded-[5px] flex items-center justify-center transition-all duration-200 border-2"
+        className="mt-0.5 w-[18px] h-[18px] min-w-[18px] rounded-md flex items-center justify-center transition-all duration-200 border cursor-pointer shrink-0"
         style={{
-          borderColor: isCompleted ? accentColor : "rgba(148, 163, 184, 0.4)",
-          backgroundColor: isCompleted ? accentColor : "rgba(15, 23, 42, 0.4)",
+          borderColor: isCompleted ? accentColor : "rgba(255, 255, 255, 0.2)",
+          backgroundColor: isCompleted ? accentColor : "rgba(0, 0, 0, 0.3)",
+          boxShadow: isCompleted ? `0 2px 8px ${accentColor}40` : "none",
         }}
       >
         {isCompleted && (
@@ -151,8 +158,8 @@ const SortableTodoItem: React.FC<SortableItemProps> = ({
         )}
       </button>
 
-      {/* Todo Text / Inline Edit - Responsive, wraps fluidly */}
-      <div className="flex-1 min-w-0 pr-1">
+      {/* Todo Text / Inline Edit */}
+      <div className="flex-1 min-w-0 pr-0.5">
         {isEditing ? (
           <input
             ref={editInputRef}
@@ -164,12 +171,12 @@ const SortableTodoItem: React.FC<SortableItemProps> = ({
               if (e.key === "Enter") onSaveEdit();
               if (e.key === "Escape") onCancelEdit();
             }}
-            className="w-full bg-black/60 border border-sky-400/70 rounded px-2 py-0.5 text-xs text-white focus:outline-none"
+            className="w-full bg-[#181a1f] border border-[#ff5733] rounded-lg px-2 py-0.5 text-xs text-white focus:outline-none"
           />
         ) : (
           <div
             onDoubleClick={() => onStartEdit(todo)}
-            className={`text-[0.92rem] font-medium leading-snug cursor-pointer transition-all break-words whitespace-normal select-text ${
+            className={`text-[0.88rem] font-medium leading-snug cursor-pointer transition-all break-words whitespace-normal select-text ${
               isCompleted
                 ? completedStyle === "strike"
                   ? "line-through opacity-40 text-neutral-400"
@@ -191,7 +198,7 @@ const SortableTodoItem: React.FC<SortableItemProps> = ({
           type="button"
           onClick={onMoveUp}
           disabled={index === 0}
-          className="p-0.5 rounded text-neutral-500 hover:text-white disabled:opacity-20 hover:bg-white/10"
+          className="p-1 rounded-md text-neutral-400 hover:text-white disabled:opacity-20 hover:bg-white/10 transition-colors"
           title="Move up"
         >
           <ChevronUp className="w-3 h-3" />
@@ -200,7 +207,7 @@ const SortableTodoItem: React.FC<SortableItemProps> = ({
           type="button"
           onClick={onMoveDown}
           disabled={index === totalTodos - 1}
-          className="p-0.5 rounded text-neutral-500 hover:text-white disabled:opacity-20 hover:bg-white/10"
+          className="p-1 rounded-md text-neutral-400 hover:text-white disabled:opacity-20 hover:bg-white/10 transition-colors"
           title="Move down"
         >
           <ChevronDown className="w-3 h-3" />
@@ -208,7 +215,7 @@ const SortableTodoItem: React.FC<SortableItemProps> = ({
         <button
           type="button"
           onClick={() => onDelete(todo.id)}
-          className="p-0.5 rounded text-neutral-500 hover:text-red-400 hover:bg-red-500/10"
+          className="p-1 rounded-md text-neutral-400 hover:text-[#ff5733] hover:bg-[#ff5733]/15 transition-colors"
           title="Delete"
         >
           <Trash2 className="w-3 h-3" />
@@ -228,24 +235,22 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
   onReorderTodos,
   onSetTitle,
 }) => {
-  const [newText, setNewText] = useState("");
+  const { todos, theme } = state;
   const [isAdding, setIsAdding] = useState(false);
+  const [newText, setNewText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(state.title);
-  const [isPinned, setIsPinned] = useState(true);
 
   const editInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
-  const { theme, todos } = state;
   const completedCount = todos.filter((t) => t.completed).length;
   const totalCount = todos.length;
   const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-  // dnd-kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -291,7 +296,7 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
     }
   };
 
-  // Robust Tauri Window Resizing (Native startResizeDragging + pointer fallback)
+  // Robust Tauri Window Resizing
   const handleStartResize = async (
     e: React.MouseEvent,
     direction: "SouthEast" | "East" | "South"
@@ -397,17 +402,6 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
     setIsEditingTitle(false);
   };
 
-  const handleTogglePin = async () => {
-    try {
-      const appWindow = getCurrentWebviewWindow();
-      const nextPinned = !isPinned;
-      await appWindow.setAlwaysOnTop(nextPinned);
-      setIsPinned(nextPinned);
-    } catch (e) {
-      console.error("Window control error", e);
-    }
-  };
-
   const handleClose = async () => {
     try {
       await invoke("close_widget_window");
@@ -433,9 +427,9 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
     }
   };
 
-  const opacityDecimal = (theme.opacity || 96) / 100;
-  const bgStyle = hexToRgba(theme.cardColor || "#0a0c10", opacityDecimal);
-  const accentColor = theme.accentColor || "#60a5fa";
+  const opacityDecimal = (theme.opacity || 92) / 100;
+  const bgStyle = hexToRgba(theme.cardColor || "#22252a", opacityDecimal);
+  const accentColor = theme.accentColor || "#ff5733";
   const fontFamily = fontFamilies[theme.font || "inter"] || fontFamilies.inter;
 
   const showTitle = theme.showTitle !== false;
@@ -443,50 +437,53 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
   const showBar = theme.progressStyle !== "fraction";
 
   return (
-    <div className="w-screen h-screen p-1 box-border overflow-hidden bg-transparent flex flex-col select-none relative">
-      {/* Edge resize strips */}
+    <div className="w-screen h-screen p-0 m-0 box-border overflow-hidden bg-transparent flex flex-col select-none relative">
+      {/* Edge resize strips (functional but completely transparent - zero hover color) */}
       <div
         onMouseDown={(e) => handleStartResize(e, "East")}
         data-no-drag="true"
-        className="absolute top-0 right-0 w-2 h-full cursor-ew-resize z-50 hover:bg-sky-400/10"
+        className="absolute top-0 right-0 w-2 h-full cursor-ew-resize z-50 bg-transparent"
         title="Resize width"
       />
       <div
         onMouseDown={(e) => handleStartResize(e, "South")}
         data-no-drag="true"
-        className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize z-50 hover:bg-sky-400/10"
+        className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize z-50 bg-transparent"
         title="Resize height"
       />
 
-      {/* Main Card Container - Fills the widget window cleanly */}
+      {/* Main Liquid Glass Container - Fills the widget window cleanly with zero outer shadow */}
       <div
-        className="w-full h-full flex flex-col relative group box-border overflow-hidden"
+        className="w-full h-full flex flex-col relative group box-border overflow-hidden liquid-widget-shell"
         style={{
           backgroundColor: bgStyle,
-          backdropFilter: `blur(${theme.blur || 20}px)`,
-          WebkitBackdropFilter: `blur(${theme.blur || 20}px)`,
-          borderRadius: `${theme.radius || 20}px`,
-          padding: `${theme.padding || 20}px`,
+          backdropFilter: `blur(${theme.blur || 32}px)`,
+          WebkitBackdropFilter: `blur(${theme.blur || 32}px)`,
+          borderRadius: `${theme.radius || 22}px`,
+          padding: `${theme.padding ? Math.min(theme.padding, 14) : 12}px`,
           fontFamily,
           color: theme.textColor || "#ffffff",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
         }}
       >
         {/* Floating Quick Action / Window Drag Bar */}
         <div 
           data-tauri-drag-region
           onMouseDown={handleStartDrag}
-          className="flex items-center justify-between pb-2 mb-1 border-b border-white/5 opacity-50 hover:opacity-100 transition-opacity duration-200 cursor-grab active:cursor-grabbing shrink-0"
+          className="flex items-center justify-between pb-2 mb-1.5 border-b border-white/[0.06] opacity-70 hover:opacity-100 transition-opacity duration-200 cursor-grab active:cursor-grabbing shrink-0"
         >
           <div 
             data-tauri-drag-region
             onMouseDown={handleStartDrag}
-            className="flex items-center gap-1.5 text-xs text-neutral-400"
+            className="flex items-center gap-1.5 text-xs text-white/90 select-none cursor-grab active:cursor-grabbing"
+            title="Drag to reposition widget"
           >
-            <GripVertical className="w-3.5 h-3.5 opacity-70" />
-            <span className="font-mono text-[10px] tracking-wider uppercase opacity-75">
-              Sticky Widget
+            <img 
+              src="/logo.png" 
+              alt="Taskmaster Widget Logo" 
+              className="w-4 h-4 object-contain rounded-sm select-none cursor-grab active:cursor-grabbing" 
+            />
+            <span className="font-semibold text-[11px] tracking-tight text-white/90 cursor-grab active:cursor-grabbing">
+              Taskmaster Widget
             </span>
           </div>
 
@@ -494,25 +491,15 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
             <button
               type="button"
               onClick={() => setIsAdding(!isAdding)}
-              className="p-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
               title="Add task"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
-              onClick={handleTogglePin}
-              className={`p-1 rounded-md transition-colors ${
-                isPinned ? "text-sky-400 bg-sky-500/10" : "text-neutral-400 hover:text-white hover:bg-white/10"
-              }`}
-              title={isPinned ? "Unpin from top" : "Keep always on top"}
-            >
-              <Pin className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
               onClick={handleOpenSettings}
-              className="p-1 rounded-md hover:bg-white/10 text-neutral-400 hover:text-sky-400 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-[#ff5733] transition-colors cursor-pointer"
               title="Open App & Customizer"
             >
               <Settings className="w-3.5 h-3.5" />
@@ -520,20 +507,20 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="p-1 rounded-md hover:bg-red-500/20 text-neutral-400 hover:text-red-400 transition-colors"
-              title="Hide Widget"
+              className="p-1.5 rounded-lg hover:bg-[#ff5733]/20 text-neutral-400 hover:text-[#ff5733] transition-colors cursor-pointer"
+              title="Close Widget"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Header matching screenshot: Title & Fraction */}
+        {/* Header: Title & Fraction */}
         {(showTitle || showFraction) && (
           <div 
             data-tauri-drag-region
             onMouseDown={handleStartDrag}
-            className="flex items-center justify-between mt-1 mb-1 gap-2 cursor-grab shrink-0"
+            className="flex items-center justify-between mt-1 mb-1.5 gap-2 cursor-grab shrink-0"
           >
             {showTitle && (
               <div className="flex-1 min-w-0">
@@ -548,12 +535,12 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
                       if (e.key === "Enter") handleSaveTitle();
                       if (e.key === "Escape") setIsEditingTitle(false);
                     }}
-                    className="w-full bg-black/40 border border-white/20 rounded px-2 py-0.5 text-sm font-bold tracking-wider uppercase text-white focus:outline-none"
+                    className="w-full bg-[#14161a] border border-[#ff5733] rounded-lg px-2 py-0.5 text-xs font-bold tracking-wider uppercase text-white focus:outline-none"
                   />
                 ) : (
                   <h1
                     onDoubleClick={() => setIsEditingTitle(true)}
-                    className="text-[0.95rem] font-extrabold tracking-[0.08em] uppercase text-white truncate cursor-pointer hover:opacity-80 transition-opacity"
+                    className="text-[0.95rem] font-extrabold tracking-[0.06em] uppercase text-white truncate cursor-pointer hover:opacity-80 transition-opacity"
                     title="Double-click to rename title"
                   >
                     {state.title || "TONIGHT'S GOAL"}
@@ -563,7 +550,7 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
             )}
 
             {showFraction && (
-              <div className="font-extrabold text-[1.05rem] tracking-tight text-white tabular-nums shrink-0">
+              <div className="font-extrabold text-[1.05rem] tracking-tight text-white tabular-nums shrink-0 bg-white/[0.04] px-2.5 py-0.5 rounded-full border border-white/[0.06]">
                 {completedCount}/{totalCount}
               </div>
             )}
@@ -572,10 +559,16 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
 
         {/* Optional mini timer strip */}
         {timer && (
-          <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 my-1 shrink-0 text-xs select-none">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[11px]">
-                {timer.timerState.mode === "stopwatch" ? "⏱️" : timer.timerState.mode === "pomodoro" ? "🍅" : "⏳"}
+          <div className="flex items-center justify-between bg-[#15171b]/80 border border-white/[0.06] rounded-xl px-3 py-1.5 my-1.5 shrink-0 text-xs select-none">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="flex items-center">
+                {timer.timerState.mode === "stopwatch" ? (
+                  <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                ) : timer.timerState.mode === "pomodoro" ? (
+                  <Flame className="w-3.5 h-3.5 text-[#ff5733]" />
+                ) : (
+                  <Hourglass className="w-3.5 h-3.5 text-neutral-400" />
+                )}
               </span>
               <span className="font-mono font-bold text-white text-[11px]">
                 {timer.timerState.mode === "stopwatch"
@@ -583,7 +576,7 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
                   : `${Math.floor(timer.timerState.timeRemaining / 60)}:${(timer.timerState.timeRemaining % 60).toString().padStart(2, "0")}`}
               </span>
               {timer.timerState.mode === "pomodoro" && (
-                <span className="text-[10px] text-sky-400 font-semibold uppercase">
+                <span className="text-[10px] text-[#ff5733] font-semibold uppercase tracking-wider">
                   {timer.timerState.pomodoroPhase === "focus" ? "Focus" : "Break"}
                 </span>
               )}
@@ -592,24 +585,23 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
             <button
               type="button"
               onClick={timer.togglePlay}
-              className={`p-1 rounded text-xs transition-colors cursor-pointer ${
-                timer.timerState.isRunning ? "text-amber-400 hover:text-amber-300" : "text-sky-400 hover:text-sky-300"
-              }`}
+              className="p-1.5 rounded-lg text-xs transition-colors cursor-pointer text-[#ff5733] hover:text-[#ff6847] hover:bg-[#ff5733]/10"
               title={timer.timerState.isRunning ? "Pause timer" : "Start timer"}
             >
-              {timer.timerState.isRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+              {timer.timerState.isRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
             </button>
           </div>
         )}
 
         {/* Thin divider & progress bar line */}
         {showBar && (
-          <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden my-2.5 relative shrink-0">
+          <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden my-2 relative shrink-0">
             <div
               className="h-full rounded-full transition-all duration-400 ease-out"
               style={{
                 width: `${progressPct}%`,
-                backgroundColor: accentColor,
+                background: "linear-gradient(90deg, #ff5733, #ff7a5c)",
+                boxShadow: `0 0 8px ${accentColor}80`,
               }}
             />
           </div>
@@ -624,25 +616,25 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
               placeholder="Type goal & press Enter..."
               value={newText}
               onChange={(e) => setNewText(e.target.value)}
-              className="flex-1 bg-black/40 border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-sky-400"
+              className="liquid-glass-input flex-1 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#ff5733]"
             />
             <button
               type="submit"
-              className="px-2.5 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs transition-colors"
+              className="liquid-coral-btn px-3 py-1.5 text-xs rounded-xl"
             >
               Add
             </button>
           </form>
         )}
 
-        {/* Todo List Items with Drag-and-Drop Reordering - Expands fluidly vertically & horizontally */}
+        {/* Todo List Items with Drag-and-Drop Reordering */}
         <div
           className="flex-1 min-h-0 overflow-y-auto flex flex-col pr-0.5"
-          style={{ gap: `${theme.spacing || 10}px` }}
+          style={{ gap: `${theme.spacing ? Math.min(theme.spacing, 8) : 6}px` }}
         >
           {todos.length === 0 ? (
-            <div className="text-center py-6 text-xs text-neutral-500">
-              No tasks yet. Click <span className="text-sky-400">+</span> above or open Studio!
+            <div className="text-center py-6 text-xs text-neutral-400">
+              No tasks yet. Click <span className="text-[#ff5733] font-bold">+</span> above or open To do!
             </div>
           ) : (
             <DndContext
@@ -685,7 +677,7 @@ export const StickyWidget: React.FC<StickyWidgetProps> = ({
         <div
           onMouseDown={(e) => handleStartResize(e, "SouthEast")}
           data-no-drag="true"
-          className="absolute bottom-1 right-1 p-1.5 cursor-nwse-resize text-white/30 hover:text-white/90 active:text-sky-400 transition-colors z-50 select-none touch-none"
+          className="absolute bottom-1 right-1 p-1.5 cursor-nwse-resize text-white/30 hover:text-white/90 active:text-[#ff5733] transition-colors z-50 select-none touch-none"
           title="Drag to resize widget window"
         >
           <svg width="11" height="11" viewBox="0 0 10 10" fill="currentColor">

@@ -12,7 +12,10 @@ import {
   CheckCircle2, 
   Target,
   Flag,
-  X
+  X,
+  Flame,
+  Hourglass,
+  Clock
 } from "lucide-react";
 
 interface FocusTimerProps {
@@ -85,50 +88,49 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
     }
   };
 
-  return (
-    <div className="bg-[#0b0d12] border border-neutral-800/80 rounded-2xl p-6 flex flex-col shadow-2xl relative overflow-hidden">
-      {/* Background ambient radial glow matching accent color */}
-      <div 
-        className="absolute -top-24 -right-24 w-64 h-64 rounded-full opacity-10 blur-3xl pointer-events-none transition-colors duration-700"
-        style={{ backgroundColor: accentColor }}
-      />
+  const primaryAccent = accentColor || "#ff5733";
 
+  return (
+    <div className="liquid-glass-card rounded-[22px] p-6 flex flex-col relative overflow-hidden shadow-2xl">
       {/* Top Header: Mode Switcher & Quick Controls */}
-      <div className="flex items-center justify-between pb-4 border-b border-neutral-800/60 z-10">
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06] z-10">
         {/* Segmented Mode Control */}
-        <div className="flex items-center bg-black/60 p-1 rounded-xl border border-neutral-800/80">
+        <div className="flex items-center bg-[#15171b]/90 p-1 rounded-full border border-white/[0.08] shadow-inner">
           <button
             type="button"
             onClick={() => onSetMode("pomodoro")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               timer.mode === "pomodoro"
-                ? "bg-neutral-800 text-white shadow-sm"
-                : "text-neutral-400 hover:text-neutral-200"
+                ? "bg-[#ff5733] text-white shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
-            🍅 Pomodoro
+            <Flame className="w-3.5 h-3.5" />
+            <span>Pomodoro</span>
           </button>
           <button
             type="button"
             onClick={() => onSetMode("countdown")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               timer.mode === "countdown"
-                ? "bg-neutral-800 text-white shadow-sm"
-                : "text-neutral-400 hover:text-neutral-200"
+                ? "bg-[#ff5733] text-white shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
-            ⏳ Timer
+            <Hourglass className="w-3.5 h-3.5" />
+            <span>Timer</span>
           </button>
           <button
             type="button"
             onClick={() => onSetMode("stopwatch")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               timer.mode === "stopwatch"
-                ? "bg-neutral-800 text-white shadow-sm"
-                : "text-neutral-400 hover:text-neutral-200"
+                ? "bg-[#ff5733] text-white shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
-            ⏱️ Stopwatch
+            <Clock className="w-3.5 h-3.5" />
+            <span>Stopwatch</span>
           </button>
         </div>
 
@@ -137,11 +139,11 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           <button
             type="button"
             onClick={() => onUpdateSettings({ soundEnabled: !timer.settings.soundEnabled })}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800/60 transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] text-neutral-400 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
             title={timer.settings.soundEnabled ? "Mute notification chime" : "Enable notification chime"}
           >
             {timer.settings.soundEnabled ? (
-              <Volume2 className="w-4 h-4 text-sky-400" />
+              <Volume2 className="w-4 h-4 text-[#ff5733]" />
             ) : (
               <VolumeX className="w-4 h-4 text-neutral-500" />
             )}
@@ -150,10 +152,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
-            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+            className={`p-2 rounded-xl border transition-all cursor-pointer ${
               showSettings
-                ? "bg-neutral-800 text-white"
-                : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                ? "bg-[#ff5733] text-white border-[#ff5733] shadow-md shadow-[#ff5733]/30"
+                : "bg-white/[0.04] border-white/[0.06] text-neutral-400 hover:text-white hover:bg-white/[0.08]"
             }`}
             title="Timer durations & settings"
           >
@@ -164,7 +166,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
 
       {/* Settings Panel Overlay */}
       {showSettings && (
-        <div className="mt-4 p-4 rounded-xl bg-neutral-900/95 border border-neutral-700/80 shadow-xl space-y-4 animate-in fade-in duration-200 z-20">
+        <div className="mt-4 p-5 rounded-2xl bg-[#1a1c22]/95 border border-white/10 shadow-2xl space-y-4 animate-in fade-in duration-200 z-20 backdrop-blur-xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-white uppercase tracking-wider">
               Pomodoro Durations
@@ -172,7 +174,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
             <button
               type="button"
               onClick={() => setShowSettings(false)}
-              className="text-neutral-400 hover:text-white"
+              className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -190,7 +192,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
                   const val = parseInt(e.target.value, 10);
                   if (!isNaN(val) && val > 0) onUpdateSettings({ focusDuration: val * 60 });
                 }}
-                className="w-full bg-black/60 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-sky-500"
+                className="liquid-glass-input w-full rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#ff5733]"
               />
             </div>
 
@@ -205,7 +207,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
                   const val = parseInt(e.target.value, 10);
                   if (!isNaN(val) && val > 0) onUpdateSettings({ shortBreakDuration: val * 60 });
                 }}
-                className="w-full bg-black/60 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-sky-500"
+                className="liquid-glass-input w-full rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#ff5733]"
               />
             </div>
 
@@ -220,33 +222,33 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
                   const val = parseInt(e.target.value, 10);
                   if (!isNaN(val) && val > 0) onUpdateSettings({ longBreakDuration: val * 60 });
                 }}
-                className="w-full bg-black/60 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-sky-500"
+                className="liquid-glass-input w-full rounded-xl px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#ff5733]"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-neutral-800 text-xs">
+          <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-xs">
             <span className="text-neutral-300">Auto-start Breaks</span>
             <input
               type="checkbox"
               checked={timer.settings.autoStartBreaks}
               onChange={(e) => onUpdateSettings({ autoStartBreaks: e.target.checked })}
-              className="accent-sky-500 cursor-pointer w-4 h-4"
+              className="accent-[#ff5733] cursor-pointer w-4 h-4 rounded"
             />
           </div>
         </div>
       )}
 
-      {/* Pomodoro Phase Buttons */}
+      {/* Pomodoro Phase Switcher (Segmented Liquid Glass Pills) */}
       {timer.mode === "pomodoro" && (
-        <div className="flex items-center justify-center gap-2 mt-4 z-10">
+        <div className="flex items-center justify-center gap-1.5 mt-4 p-1 bg-[#14161a]/80 rounded-full border border-white/[0.06] z-10">
           <button
             type="button"
             onClick={() => onSetPhase("focus")}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
               timer.pomodoroPhase === "focus"
-                ? "bg-sky-500/20 text-sky-400 border border-sky-500/40"
-                : "bg-black/40 text-neutral-400 border border-transparent hover:text-white"
+                ? "bg-[#ff5733] text-white font-semibold shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             Focus
@@ -254,10 +256,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           <button
             type="button"
             onClick={() => onSetPhase("shortBreak")}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
               timer.pomodoroPhase === "shortBreak"
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "bg-black/40 text-neutral-400 border border-transparent hover:text-white"
+                ? "bg-[#ff5733] text-white font-semibold shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             Short Break
@@ -265,10 +267,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           <button
             type="button"
             onClick={() => onSetPhase("longBreak")}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
               timer.pomodoroPhase === "longBreak"
-                ? "bg-purple-500/20 text-purple-400 border border-purple-500/40"
-                : "bg-black/40 text-neutral-400 border border-transparent hover:text-white"
+                ? "bg-[#ff5733] text-white font-semibold shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             Long Break
@@ -277,12 +279,12 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
       )}
 
       {/* Linked Task Banner */}
-      <div className="mt-4 px-3.5 py-2.5 rounded-xl bg-black/40 border border-neutral-800/80 flex items-center justify-between gap-2 z-10">
+      <div className="mt-4 px-4 py-3 rounded-2xl liquid-glass-row border border-white/[0.06] flex items-center justify-between gap-3 z-10">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Target className="w-4 h-4 text-sky-400 shrink-0" />
+          <Target className="w-4 h-4 text-[#ff5733] shrink-0" />
           {activeTodo ? (
             <div className="truncate">
-              <span className="text-[10px] uppercase font-bold text-sky-400 block tracking-wider">
+              <span className="text-[10px] uppercase font-bold text-[#ff5733] block tracking-wider">
                 Current Focus Task
               </span>
               <span className={`text-xs font-medium truncate block ${activeTodo.completed ? "line-through text-neutral-500" : "text-white"}`}>
@@ -292,7 +294,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           ) : (
             <div className="truncate">
               <span className="text-xs text-neutral-400">
-                No task linked. Select one below to focus on it.
+                No task linked. Select one to focus on it.
               </span>
             </div>
           )}
@@ -303,7 +305,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
             <button
               type="button"
               onClick={() => onCompleteTodo(activeTodo.id)}
-              className="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer"
+              className="px-2.5 py-1 bg-[#ff5733]/20 hover:bg-[#ff5733]/30 text-[#ff5733] border border-[#ff5733]/30 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer"
               title="Mark task completed"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -325,12 +327,12 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
               onChange={(e) => {
                 if (e.target.value) onSetActiveTodoId(e.target.value);
               }}
-              className="bg-neutral-900 border border-neutral-700 rounded-lg px-2 py-1 text-[11px] text-neutral-300 focus:outline-none focus:border-sky-500 cursor-pointer"
+              className="bg-[#181a1f] border border-white/10 rounded-xl px-2.5 py-1 text-[11px] text-neutral-200 focus:outline-none focus:border-[#ff5733] cursor-pointer"
             >
               <option value="" disabled>Link task...</option>
               {todos.map((t) => (
                 <option key={t.id} value={t.id} disabled={t.completed}>
-                  {t.completed ? "✓ " : ""}{t.text}
+                  {t.completed ? "[Done] " : ""}{t.text}
                 </option>
               ))}
             </select>
@@ -343,7 +345,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
         {timer.mode !== "stopwatch" ? (
           <div className="relative flex items-center justify-center">
             {/* SVG Progress Ring */}
-            <svg width="250" height="250" className="transform -rotate-90">
+            <svg width="250" height="250" className="transform -rotate-90 filter drop-shadow-xl">
               {/* Background Track */}
               <circle
                 cx="125"
@@ -358,7 +360,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
                 cx="125"
                 cy="125"
                 r={radius}
-                stroke={accentColor}
+                stroke={primaryAccent}
                 strokeWidth="8"
                 fill="transparent"
                 strokeDasharray={circumference}
@@ -391,10 +393,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
                   {Array.from({ length: timer.settings.longBreakInterval }).map((_, idx) => (
                     <div
                       key={idx}
-                      className={`w-2 h-2 rounded-full transition-all ${
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
                         idx + 1 <= timer.currentRound
-                          ? "bg-sky-400 shadow-sm shadow-sky-500/50"
-                          : "bg-neutral-800 border border-neutral-700"
+                          ? "bg-[#ff5733] shadow-md shadow-[#ff5733]/60 scale-110"
+                          : "bg-white/10 border border-white/10"
                       }`}
                       title={`Round ${idx + 1} of ${timer.settings.longBreakInterval}`}
                     />
@@ -417,16 +419,16 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
 
         {/* Quick presets for Countdown Mode */}
         {timer.mode === "countdown" && (
-          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
             {[5, 10, 15, 25, 30, 45, 60].map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => onSetCountdownDuration(m * 60)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1 rounded-full text-xs font-mono font-medium transition-all cursor-pointer ${
                   timer.targetDuration === m * 60
-                    ? "bg-sky-500 text-slate-950 font-bold"
-                    : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300"
+                    ? "bg-[#ff5733] text-white font-bold shadow-md shadow-[#ff5733]/30 border border-[#ff5733]"
+                    : "liquid-glass-pill"
                 }`}
               >
                 {m}m
@@ -440,12 +442,12 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
                 max="300"
                 value={customMinutes}
                 onChange={(e) => setCustomMinutes(e.target.value)}
-                className="w-12 bg-neutral-900 border border-neutral-700 rounded-lg px-1.5 py-1 text-xs text-white font-mono text-center focus:outline-none focus:border-sky-500"
+                className="w-12 liquid-glass-input rounded-full px-2 py-1 text-xs text-white font-mono text-center focus:outline-none focus:border-[#ff5733]"
                 placeholder="m"
               />
               <button
                 type="submit"
-                className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs rounded-lg font-medium cursor-pointer"
+                className="px-2.5 py-1 bg-white/10 hover:bg-white/15 text-neutral-200 text-xs rounded-full font-medium cursor-pointer"
               >
                 Set
               </button>
@@ -460,7 +462,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
         <button
           type="button"
           onClick={onReset}
-          className="p-3 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-full border border-neutral-800 transition-all shadow cursor-pointer active:scale-95"
+          className="p-3 bg-white/[0.05] hover:bg-white/[0.1] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-all shadow-md cursor-pointer active:scale-95"
           title="Reset timer"
         >
           <RotateCcw className="w-4 h-4" />
@@ -470,11 +472,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
         <button
           type="button"
           onClick={onTogglePlay}
-          className="px-7 py-3.5 rounded-full font-bold text-sm flex items-center gap-2.5 transition-all shadow-lg shadow-sky-500/20 active:scale-95 cursor-pointer"
-          style={{
-            backgroundColor: timer.isRunning ? "#ef4444" : accentColor,
-            color: timer.isRunning ? "#ffffff" : "#0a0c10",
-          }}
+          className="liquid-coral-btn px-8 py-3.5 rounded-full font-bold text-sm flex items-center gap-2.5 active:scale-95 cursor-pointer shadow-lg shadow-[#ff5733]/30"
         >
           {timer.isRunning ? (
             <>
@@ -495,7 +493,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
             type="button"
             onClick={onAddLap}
             disabled={!timer.isRunning}
-            className="p-3 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-full border border-neutral-800 transition-all shadow cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-3 bg-white/[0.05] hover:bg-white/[0.1] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-all shadow-md cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
             title="Record Lap"
           >
             <Flag className="w-4 h-4" />
@@ -504,7 +502,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           <button
             type="button"
             onClick={onSkipPhase}
-            className="p-3 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-full border border-neutral-800 transition-all shadow cursor-pointer active:scale-95"
+            className="p-3 bg-white/[0.05] hover:bg-white/[0.1] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-all shadow-md cursor-pointer active:scale-95"
             title="Skip to next phase"
           >
             <SkipForward className="w-4 h-4" />
@@ -513,7 +511,7 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
           <button
             type="button"
             onClick={onAddFiveMinutes}
-            className="p-3 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white rounded-full border border-neutral-800 transition-all shadow cursor-pointer active:scale-95"
+            className="p-3 bg-white/[0.05] hover:bg-white/[0.1] text-neutral-300 hover:text-white rounded-full border border-white/10 transition-all shadow-md cursor-pointer active:scale-95"
             title="+5 Minutes"
           >
             <Plus className="w-4 h-4" />
@@ -523,8 +521,8 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
 
       {/* Stopwatch Laps Table */}
       {timer.mode === "stopwatch" && timer.laps.length > 0 && (
-        <div className="mt-5 max-h-36 overflow-y-auto border-t border-neutral-800 pt-3 z-10">
-          <div className="flex justify-between text-[11px] font-bold text-neutral-500 uppercase px-2 mb-1">
+        <div className="mt-5 max-h-36 overflow-y-auto border-t border-white/[0.06] pt-3 z-10">
+          <div className="flex justify-between text-[11px] font-bold text-neutral-400 uppercase px-2 mb-1.5">
             <span>Lap</span>
             <span>Split</span>
             <span>Total</span>
@@ -533,10 +531,10 @@ export const FocusTimer: React.FC<FocusTimerProps> = ({
             {timer.laps.map((lap) => (
               <div
                 key={lap.id}
-                className="flex justify-between text-xs font-mono text-neutral-300 px-2 py-1 bg-black/30 rounded-lg"
+                className="flex justify-between text-xs font-mono text-neutral-300 px-3 py-1.5 liquid-glass-row rounded-xl"
               >
-                <span className="text-neutral-500 font-sans font-medium">#{lap.lapNumber}</span>
-                <span>+{formatStopwatch(lap.lapTime)}</span>
+                <span className="text-neutral-400 font-sans font-medium">#{lap.lapNumber}</span>
+                <span className="text-neutral-300">+{formatStopwatch(lap.lapTime)}</span>
                 <span className="text-white font-semibold">{formatStopwatch(lap.totalTime)}</span>
               </div>
             ))}

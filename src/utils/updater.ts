@@ -1,6 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 
-export const CURRENT_VERSION = "0.1.0";
+export const CURRENT_VERSION = "0.1.1";
 export const GITHUB_REPO = "raktim-yoddha/todo-app";
 
 export interface ReleaseAsset {
@@ -40,7 +40,7 @@ export function isNewerVersion(current: string, remote: string): boolean {
 }
 
 /**
- * Checks GitHub Releases API for the latest release
+ * Checks GitHub Releases API for the latest release, with fallback to Git tags
  */
 export async function checkForUpdate(): Promise<UpdateInfo | null> {
   try {
@@ -53,7 +53,27 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
 
     if (!res.ok) {
       if (res.status === 404) {
-        // No releases published yet
+        // Fallback: check git tags endpoint in case release was created via tag
+        const tagsRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/tags`, {
+          headers: { Accept: "application/vnd.github.v3+json" },
+        });
+        if (tagsRes.ok) {
+          const tags = await tagsRes.json();
+          if (Array.isArray(tags) && tags.length > 0) {
+            const latestTag = tags[0];
+            const cleanTag = (latestTag.name || "").replace(/^v/i, "");
+            const hasUpdate = isNewerVersion(CURRENT_VERSION, cleanTag);
+            return {
+              version: cleanTag,
+              title: `Version ${cleanTag}`,
+              notes: `A new version (v${cleanTag}) is available on GitHub.`,
+              publishedAt: new Date().toISOString(),
+              releaseUrl: `https://github.com/${GITHUB_REPO}/releases/tag/${latestTag.name}`,
+              assets: [],
+              hasUpdate,
+            };
+          }
+        }
         return null;
       }
       console.warn("GitHub API release check responded with:", res.status);
